@@ -63,8 +63,8 @@ cp .env.example .env
 
 | Provider | Env var | Get key (free) | Model default |
 |---|---|---|---|
-| **Gemini Flash** *(recommended)* | `REACT_APP_GEMINI_API_KEY` | https://aistudio.google.com/app/apikey | `gemini-1.5-flash` — 60 req/min free |
-| **Groq** | `REACT_APP_GROQ_API_KEY` | https://console.groq.com/keys | `llama-3.1-8b-instant` |
+| **Gemini Flash** | `REACT_APP_GEMINI_API_KEY` | https://aistudio.google.com/app/apikey | `gemini-3.6-flash` (fallback: `gemini-flash-latest`) — 60 req/min free |
+| **Groq** *(recommended, stable)* | `REACT_APP_GROQ_API_KEY` | https://console.groq.com/keys | `llama-3.3-70b-versatile` — verified: `openai/gpt-oss-120b`, `openai/gpt-oss-20b` |
 | **Hugging Face** | `REACT_APP_HUGGINGFACE_API_KEY` | https://huggingface.co/settings/tokens | `mistralai/Mistral-7B-Instruct-v0.3` |
 | Anthropic (paid) | `REACT_APP_ANTHROPIC_API_KEY` | https://console.anthropic.com/ | `claude-3-haiku-20240307` |
 
@@ -137,5 +137,5 @@ The "retrieval" is the extracted text sent as context on every call — no serve
 | Styling | Plain CSS — Flexbox, Grid, CSS variables, Media Queries |
 | Markdown | react-markdown |
 | PDF | pdfjs-dist 4.4 (client-side extraction, free) |
-| AI | Gemini 1.5 Flash / Groq / Hugging Face (free) + Anthropic (optional) |
+| AI | Gemini 3.6 Flash (`gemini-flash-latest` fallback) / Groq (`openai/gpt-oss-120b` verified, `llama-3.3-70b`) / Hugging Face (free) + Anthropic (optional) |
 | Patterns | Factory, Strategy, React.memo, useRef, lazy/Suspense ready |
