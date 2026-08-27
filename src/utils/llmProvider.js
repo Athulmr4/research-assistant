@@ -107,11 +107,12 @@ function buildMessages(paperBlock, userMessage, history) {
 
 async function callGemini(messages) {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-  // 2026 update: gemini-1.5-* and gemini-2.0-flash were removed. Valid: gemini-flash-latest, gemini-2.5-flash, gemini-2.5-flash-lite
-  const primaryModel = process.env.REACT_APP_GEMINI_MODEL || 'gemini-flash-latest';
-  const candidates = primaryModel === 'gemini-flash-latest'
-    ? ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite']
-    : [primaryModel, 'gemini-flash-latest', 'gemini-2.5-flash'];
+  // 2026 update: gemini-1.5-* / 2.0 / 2.5 retired for new users. Valid: gemini-3.6-flash, gemini-flash-latest
+  // Check live list: curl .../v1beta/models?key=$KEY | jq .models[].name
+  const primaryModel = process.env.REACT_APP_GEMINI_MODEL || 'gemini-3.6-flash';
+  const candidates = primaryModel === 'gemini-3.6-flash'
+    ? ['gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash', 'gemini-2.5-flash']
+    : [primaryModel, 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.5-flash'];
 
   // Gemini uses systemInstruction + contents
   const contents = messages.map((m) => ({
@@ -138,12 +139,13 @@ async function callGemini(messages) {
     } catch (err) {
       lastErr = err;
       console.warn(`[llmProvider] ${model} failed: ${err.status} ${err.message}`);
-      if (err.status !== 404) {
+      const isNotFound = err.status === 404 || err.message?.includes('not found') || err.message?.includes('no longer available') || err.message?.includes('not supported');
+      if (!isNotFound) {
         if (err.status === 403) err.message += ' — Enable Generative Language API at console.cloud.google.com/apis/library/generativelanguage.googleapis.com';
         if (err.status === 400) err.message += ' — Check REACT_APP_GEMINI_API_KEY is valid (no quotes/spaces) and restart npm start.';
         throw err;
       }
-      // 404 → try next candidate
+      // try next candidate on not-found / retired model
       if (model === candidates[candidates.length - 1]) throw err;
     }
   }
@@ -159,7 +161,8 @@ async function callGemini(messages) {
 
 async function callGroq(messages) {
   const apiKey = process.env.REACT_APP_GROQ_API_KEY;
-  const model = process.env.REACT_APP_GROQ_MODEL || 'llama-3.1-8b-instant';
+  // 2026: llama-3.1-8b-instant deprecated; use llama-3.3-70b-versatile or llama-3.1-70b
+  const model = process.env.REACT_APP_GROQ_MODEL || 'llama-3.3-70b-versatile';
   const url = 'https://api.groq.com/openai/v1/chat/completions';
 
   const data = await apiClient.request(url, {
