@@ -1,40 +1,44 @@
-import { useState, useCallback } from 'react';
-import { askAboutPaper } from '../utils/anthropicApi';
+import { useState, useCallback, useRef } from 'react';
+import { askAboutPaper } from '../utils/llmProvider';
 
 /**
  * useChat — manages all chat state and API interaction.
+ * Fixed: history duplication bug; uses useRef to avoid stale messages closure.
+ * Supports both pdfText (free providers) and pdfBase64 (Anthropic).
  *
- * @param {string|null} pdfBase64 - The loaded paper as base64.
+ * @param {{ pdfText: string|null, pdfBase64: string|null }} paperContext
  * @returns {{ messages, isLoading, error, sendMessage, clearChat }}
  */
-export function useChat(pdfBase64) {
+export function useChat(paperContext) {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  // Ref keeps latest messages without triggering sendMessage identity churn
+  const messagesRef = useRef(messages);
+  messagesRef.current = messages;
 
   const sendMessage = useCallback(
     async (userText) => {
       if (!userText.trim() || isLoading) return;
-      if (!pdfBase64) {
+      if (!paperContext.pdfText && !paperContext.pdfBase64) {
         setError('Please upload a research paper PDF first.');
         return;
       }
 
       setError(null);
 
-      // Add user message to UI immediately
       const userMsg = { role: 'user', content: userText };
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
 
       try {
-        // Build history from current messages (exclude the new one we just added)
-        const history = messages.map((m) => ({
+        // Use ref to get history before the optimistic userMsg
+        const history = messagesRef.current.map((m) => ({
           role: m.role,
           content: m.content,
         }));
 
-        const reply = await askAboutPaper(userText, pdfBase64, history);
+        const reply = await askAboutPaper(userText, paperContext, history);
 
         setMessages((prev) => [
           ...prev,
@@ -42,13 +46,12 @@ export function useChat(pdfBase64) {
         ]);
       } catch (err) {
         setError(err.message);
-        // Remove the user message if the request failed
         setMessages((prev) => prev.slice(0, -1));
       } finally {
         setIsLoading(false);
       }
     },
-    [pdfBase64, isLoading, messages]
+    [paperContext, isLoading]
   );
 
   const clearChat = useCallback(() => {

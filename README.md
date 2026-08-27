@@ -1,15 +1,16 @@
 # Research Paper Assistant
 
 An AI-powered tool to help you understand research papers quickly.  
-Built with **React** + **Anthropic Claude API** (RAG-based PDF analysis).
+Built with **React 18** + **Responsive Flexbox** + **Free LLM providers (Gemini/Groq/HF)** — no server, no cost.
 
-## Features
+## Features (Free & Operable)
 
-- **Summarize** any research paper PDF
-- **Answer questions** about the paper's content
+- **Summarize** any research paper PDF — one-click quick action
+- **Answer questions** about the paper's content (grounded in extracted text)
 - **Explain difficult concepts** in plain language
-- Multi-turn conversation — ask follow-up questions
-- Quick action buttons for common tasks
+- **Multi-turn conversation** — ask follow-up questions, history-aware
+- **Quick action buttons** — Summarize, Concepts, Contributions, Methodology, Limitations
+- **Responsive web design** — Flexbox layout, mobile drawer, Fluid typography (`clamp()`), CSS variables, a11y
 
 ---
 
@@ -21,21 +22,24 @@ research-assistant/
 │   └── index.html
 ├── src/
 │   ├── components/
-│   │   ├── Sidebar.js       # Upload zone + quick actions
-│   │   ├── Sidebar.css
-│   │   ├── ChatWindow.js    # Message list + markdown rendering
-│   │   ├── ChatWindow.css
+│   │   ├── Sidebar.js       # Upload zone + quick actions (Flexbox column, a11y)
+│   │   ├── Sidebar.css      # Responsive drawer, 260px→220px→overlay
+│   │   ├── ChatWindow.js    # Message list + markdown, React.memo
+│   │   ├── ChatWindow.css   # Flexbox messages, clamp bubbles
 │   │   ├── ChatInput.js     # Textarea + send button
-│   │   └── ChatInput.css
+│   │   └── ChatInput.css    # Flexbox bar
 │   ├── hooks/
-│   │   ├── useChat.js       # Chat state & API calls
-│   │   └── usePaper.js      # PDF file loading & base64 conversion
+│   │   ├── useChat.js       # Chat state, useRef fix, apiClient
+│   │   └── usePaper.js      # pdf.js text extraction + base64
 │   ├── utils/
-│   │   └── anthropicApi.js  # Anthropic API wrapper
-│   ├── App.js               # Root layout
-│   ├── App.css
+│   │   ├── pdfUtils.js      # pdfjs-dist client-side extraction (free)
+│   │   ├── apiClient.js     # Factory: retry, timeout, AbortController
+│   │   ├── llmProvider.js   # Strategy: gemini|groq|hf|anthropic (free-first)
+│   │   └── anthropicApi.js  # Re-export for backwards compat
+│   ├── App.js               # Root layout — Flexbox row, hamburger, provider badge
+│   ├── App.css              # Responsive breakpoints 1024/768/400
 │   ├── index.js
-│   └── index.css
+│   └── index.css            # CSS variables, focus-visible, clamp
 ├── .env.example
 ├── .gitignore
 └── package.json
@@ -43,7 +47,7 @@ research-assistant/
 
 ---
 
-## Setup & Run
+## Setup & Run (Free)
 
 ### 1. Install dependencies
 
@@ -51,18 +55,20 @@ research-assistant/
 npm install
 ```
 
-### 2. Add your API key
+### 2. Add a FREE API key (pick one)
 
 ```bash
 cp .env.example .env
 ```
 
-Then open `.env` and replace `your_api_key_here` with your actual key from  
-[https://console.anthropic.com/](https://console.anthropic.com/)
+| Provider | Env var | Get key (free) | Model default |
+|---|---|---|---|
+| **Gemini Flash** *(recommended)* | `REACT_APP_GEMINI_API_KEY` | https://aistudio.google.com/app/apikey | `gemini-1.5-flash` — 60 req/min free |
+| **Groq** | `REACT_APP_GROQ_API_KEY` | https://console.groq.com/keys | `llama-3.1-8b-instant` |
+| **Hugging Face** | `REACT_APP_HUGGINGFACE_API_KEY` | https://huggingface.co/settings/tokens | `mistralai/Mistral-7B-Instruct-v0.3` |
+| Anthropic (paid) | `REACT_APP_ANTHROPIC_API_KEY` | https://console.anthropic.com/ | `claude-3-haiku-20240307` |
 
-```
-REACT_APP_ANTHROPIC_API_KEY=sk-ant-...
-```
+Set `REACT_APP_LLM_PROVIDER=auto` (default) — picks first key found. Or force e.g. `gemini`.
 
 ### 3. Start the app
 
@@ -76,37 +82,50 @@ Opens at **http://localhost:3000**
 
 ## How to Use
 
-1. Click **Upload PDF** (or drag & drop) and select a research paper
+1. Click **Upload PDF** (or drag & drop) — text is extracted in-browser via `pdf.js` (free, no upload to server)
 2. Use the **Quick Action** buttons on the left for instant analysis, or
-3. Type any question in the chat bar and press **Enter**
+3. Type any question in the chat bar and press **Enter** (Shift+Enter for newline)
+4. On mobile: tap ☰ hamburger to open sidebar drawer
 
 ---
 
-## How It Works (RAG Architecture)
+## How It Works (RAG Architecture — Free)
 
 ```
 User uploads PDF
       ↓
-PDF converted to base64
+pdf.js extracts text client-side (≤15k chars, truncated note)
       ↓
-Sent to Claude API as a document block (full paper as context)
+Text sent as context + user question → LLM (Gemini/Groq/HF free tier)
       ↓
-Claude answers grounded in the paper's content
+LLM answers grounded in paper content
       ↓
-Multi-turn conversation history maintained in React state
+Multi-turn history (fixed: no duplication bug) in React state
 ```
 
-The "retrieval" here is the full PDF sent as context on every call —  
-Claude handles the grounding automatically.
+The "retrieval" is the extracted text sent as context on every call — no server, no cost.
+
+### Design Patterns Used (Resume Mentionable)
+
+- **Factory** — `utils/apiClient.js:createApiClient()` creates retry/timeout clients
+- **Strategy** — `utils/llmProvider.js` switches gemini/groq/hf/anthropic via `REACT_APP_LLM_PROVIDER`
+- **Observer-ish** — `useChat` messages + `useRef` to avoid stale closures
+
+---
+
+## Responsive Web Design (Resume Bullet)
+
+- **Flexbox** throughout: `App.css:.app-body` (`flex row → column`), `ChatWindow.css:.message`, `ChatInput.css:.chat-input-bar`, `Sidebar.css:.quick-actions` column
+- **Breakpoints:** 1024px (sidebar 220px), 768px (hamburger + drawer overlay), 400px (compact)
+- **HTML5 semantics:** `header`/`main`/`aside`/`nav`/`section`, `role=log` + `aria-live`, keyboard `Enter/Space` on upload zone, `focus-visible` rings
+- **CSS:** variables, `clamp()` typography/bubbles, `scrollbar-gutter:stable`, `100dvh`, `prefers-color-scheme` dark mode
 
 ---
 
 ## Important: Production Warning
 
-> **Do not deploy this app publicly as-is.**  
-> The API key is exposed in the browser.  
-> For production, move API calls to a backend server  
-> (e.g., Express.js, Next.js API routes, or a serverless function).
+> **API keys are exposed in the browser.**  
+> For public deploy, move calls to a backend (Express/Next API route). This repo is a frontend demo — ideal for resume/portfolio with free keys.
 
 ---
 
@@ -115,7 +134,8 @@ Claude handles the grounding automatically.
 | Layer | Technology |
 |---|---|
 | UI | React 18 |
-| Styling | Plain CSS with CSS variables |
+| Styling | Plain CSS — Flexbox, Grid, CSS variables, Media Queries |
 | Markdown | react-markdown |
-| AI | Anthropic Claude API (`claude-opus-4-5`) |
-| PDF context | Base64 document blocks |
+| PDF | pdfjs-dist 4.4 (client-side extraction, free) |
+| AI | Gemini 1.5 Flash / Groq / Hugging Face (free) + Anthropic (optional) |
+| Patterns | Factory, Strategy, React.memo, useRef, lazy/Suspense ready |

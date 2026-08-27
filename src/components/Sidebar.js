@@ -34,27 +34,45 @@ const QUICK_ACTIONS = [
   },
 ];
 
-export function Sidebar({ paper, isProcessing, onFileSelect, onQuickAction, onClearPaper }) {
+export function Sidebar({ paper, isProcessing, onFileSelect, onQuickAction, onClearPaper, isOpen, onClose, id }) {
   const fileInputRef = useRef(null);
 
   function handleDrop(e) {
     e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
     const file = e.dataTransfer.files[0];
     if (file) onFileSelect(file);
   }
 
   function handleDragOver(e) {
     e.preventDefault();
+    e.currentTarget.classList.add('drag-over');
+  }
+
+  function handleDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInputRef.current.click();
+    }
   }
 
   return (
-    <aside className="sidebar">
-      {/* Upload zone */}
+    <aside id={id} className={`sidebar ${isOpen ? 'sidebar--open' : ''}`} aria-label="Paper and quick actions">
+      {/* Upload zone — HTML5 drag & drop + keyboard a11y */}
       <div
         className={`upload-zone ${paper ? 'has-paper' : ''}`}
         onClick={() => fileInputRef.current.click()}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onKeyDown={handleKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-label={paper ? `Loaded: ${paper.name}. Click to replace` : 'Upload PDF — click or drag and drop'}
       >
         <input
           ref={fileInputRef}
@@ -65,36 +83,37 @@ export function Sidebar({ paper, isProcessing, onFileSelect, onQuickAction, onCl
         />
 
         {isProcessing ? (
-          <div className="upload-loading">
-            <div className="spinner" />
+          <div className="upload-loading" aria-live="polite">
+            <div className="spinner" aria-hidden="true" />
             <span>Processing PDF...</span>
           </div>
         ) : paper ? (
           <div className="paper-info">
-            <div className="paper-icon">📄</div>
+            <div className="paper-icon" aria-hidden="true">📄</div>
             <div className="paper-details">
-              <p className="paper-name">{paper.name}</p>
-              <p className="paper-meta">{paper.size} · Ready</p>
+              <p className="paper-name" title={paper.name}>{paper.name}</p>
+              <p className="paper-meta">{paper.size}{paper.pages ? ` · ${paper.pages} pages` : ''} · Ready</p>
             </div>
             <button
               className="clear-btn"
               onClick={(e) => { e.stopPropagation(); onClearPaper(); }}
               title="Remove paper"
+              aria-label="Remove paper"
             >
               ×
             </button>
           </div>
         ) : (
           <div className="upload-prompt">
-            <div className="upload-icon">⬆</div>
+            <div className="upload-icon" aria-hidden="true">⬆</div>
             <p className="upload-title">Upload PDF</p>
             <p className="upload-sub">Click or drag & drop a research paper</p>
           </div>
         )}
       </div>
 
-      {/* Quick actions */}
-      <div className="quick-actions">
+      {/* Quick actions — semantic nav */}
+      <nav className="quick-actions" aria-label="Quick actions">
         <p className="section-label">Quick actions</p>
         {QUICK_ACTIONS.map((action) => (
           <button
@@ -102,12 +121,17 @@ export function Sidebar({ paper, isProcessing, onFileSelect, onQuickAction, onCl
             className="action-btn"
             onClick={() => onQuickAction(action.prompt)}
             disabled={!paper}
+            aria-disabled={!paper}
           >
             <span className="action-label">{action.label}</span>
             <span className="action-desc">{action.description}</span>
           </button>
         ))}
-      </div>
+      </nav>
+
+      <p className="sidebar-hint">
+        Free: text is extracted in-browser (pdf.js) then sent to your chosen LLM. No server.
+      </p>
     </aside>
   );
 }

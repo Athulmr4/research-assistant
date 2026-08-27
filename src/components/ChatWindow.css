@@ -99,6 +99,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  scrollbar-gutter: stable;
 }
 
 /* Messages */
@@ -136,11 +137,13 @@
 }
 
 .bubble {
-  max-width: 78%;
+  max-width: clamp(280px, 78%, 640px);
   padding: 10px 14px;
   font-size: 14px;
   line-height: 1.65;
   border-radius: 16px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .message--ai .bubble {
@@ -219,4 +222,15 @@
   border-radius: var(--radius-md);
   padding: 10px 14px;
   font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .chat-empty { padding: 1.2rem 1rem; }
+  .messages-list { padding: 16px 12px; gap: 16px; }
+  .bubble { max-width: 88%; font-size: 13px; }
+  .empty-examples { width: 100%; }
+}
+
+@media (max-width: 400px) {
+  .bubble { max-width: 92%; }
 }

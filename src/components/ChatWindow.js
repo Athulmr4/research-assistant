@@ -11,8 +11,8 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
 
   if (messages.length === 0 && !isLoading) {
     return (
-      <div className="chat-empty">
-        <div className="empty-icon">📚</div>
+      <section className="chat-empty" aria-label="Getting started">
+        <div className="empty-icon" aria-hidden="true">📚</div>
         <h2 className="empty-title">Research Paper Assistant</h2>
         <p className="empty-sub">
           Upload a PDF on the left, then ask me to summarize it,<br />
@@ -27,7 +27,7 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
             <li>"How does this compare to prior work?"</li>
           </ul>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -41,7 +41,7 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
         </div>
       )}
 
-      <div className="messages-list">
+      <div className="messages-list" role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((msg, i) => (
           <Message key={i} role={msg.role} content={msg.content} />
         ))}
@@ -49,7 +49,7 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
         {isLoading && <TypingIndicator />}
 
         {error && (
-          <div className="error-banner">
+          <div className="error-banner" role="alert">
             <strong>Error:</strong> {error}
           </div>
         )}
@@ -60,12 +60,12 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
   );
 }
 
-function Message({ role, content }) {
+const Message = React.memo(function Message({ role, content }) {
   const isUser = role === 'user';
 
   return (
     <div className={`message ${isUser ? 'message--user' : 'message--ai'}`}>
-      <div className={`avatar ${isUser ? 'avatar--user' : 'avatar--ai'}`}>
+      <div className={`avatar ${isUser ? 'avatar--user' : 'avatar--ai'}`} aria-hidden="true">
         {isUser ? 'You' : 'AI'}
       </div>
       <div className="bubble">
@@ -77,7 +77,7 @@ function Message({ role, content }) {
       </div>
     </div>
   );
-}
+});
 
 function TypingIndicator() {
   return (
