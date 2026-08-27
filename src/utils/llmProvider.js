@@ -36,12 +36,15 @@ export function resolveProvider() {
 }
 
 export function getProviderLabel(provider) {
-  const model = provider === 'gemini' ? (process.env.REACT_APP_GEMINI_MODEL || 'gemini-flash-latest') : '';
+  const geminiModel = process.env.REACT_APP_GEMINI_MODEL || 'gemini-3.6-flash';
+  const groqModel = process.env.REACT_APP_GROQ_MODEL || 'llama-3.3-70b-versatile';
+  const hfModel = process.env.REACT_APP_HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.3';
+  const anthropicModel = process.env.REACT_APP_ANTHROPIC_MODEL || 'claude-3-haiku-20240307';
   const labels = {
-    gemini: `Gemini ${model} (Free)`,
-    groq: 'Groq Llama 3.1 (Free)',
-    huggingface: 'Hugging Face (Free)',
-    anthropic: 'Claude Opus 4.5',
+    gemini: `Gemini ${geminiModel} (Free)`,
+    groq: `Groq ${groqModel} (Free)`,
+    huggingface: `HF ${hfModel}`,
+    anthropic: `Claude ${anthropicModel}`,
     none: 'No key configured',
   };
   return labels[provider] || provider;
