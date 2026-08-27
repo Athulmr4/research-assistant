@@ -110,7 +110,7 @@ Multi-turn history (fixed: no duplication bug) in React state
 
 The "retrieval" is the extracted text sent as context on every call — no server, no cost.
 
-### Design Patterns Used (Resume Mentionable)
+### Design Patterns
 
 - **Factory** — `utils/apiClient.js:createApiClient()` creates retry/timeout clients
 - **Strategy** — `utils/llmProvider.js` switches gemini/groq/hf/anthropic via `REACT_APP_LLM_PROVIDER`
@@ -118,19 +118,12 @@ The "retrieval" is the extracted text sent as context on every call — no serve
 
 ---
 
-## Responsive Web Design (Resume Bullet)
+## Responsive Web Design
 
 - **Flexbox** throughout: `App.css:.app-body` (`flex row → column`), `ChatWindow.css:.message`, `ChatInput.css:.chat-input-bar`, `Sidebar.css:.quick-actions` column
 - **Breakpoints:** 1024px (sidebar 220px), 768px (hamburger + drawer overlay), 400px (compact)
 - **HTML5 semantics:** `header`/`main`/`aside`/`nav`/`section`, `role=log` + `aria-live`, keyboard `Enter/Space` on upload zone, `focus-visible` rings
 - **CSS:** variables, `clamp()` typography/bubbles, `scrollbar-gutter:stable`, `100dvh`, `prefers-color-scheme` dark mode
-
----
-
-## Important: Production Warning
-
-> **API keys are exposed in the browser.**  
-> For public deploy, move calls to a backend (Express/Next API route). This repo is a frontend demo — ideal for resume/portfolio with free keys.
 
 ---
 
