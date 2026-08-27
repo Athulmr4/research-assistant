@@ -5,21 +5,6 @@ Built with **React 18** + **Responsive Flexbox** + **Free LLM providers (Gemini/
 
 ## Demo
 
-> **Add your demo screenshot/GIF here — replace the placeholder below.**
-
-| Desktop (1280px) | Mobile (375px) |
-|---|---|
-| ![Desktop demo placeholder](docs/demo-desktop.png) | ![Mobile demo placeholder](docs/demo-mobile.png) |
-
-**To add later:**
-1. Take screenshots or record GIF at `http://localhost:3000` (upload PDF → Summarize)
-2. Save as `docs/demo-desktop.png` and `docs/demo-mobile.png` (or `demo.gif`)
-3. Commit: `git add docs/demo-*.png && git commit -m "docs: add demo screenshots"`
-
-```markdown
-![Demo](docs/demo.gif)
-```
-
 ## Features (Free & Operable)
 
 - **Summarize** any research paper PDF — one-click quick action
@@ -58,8 +43,8 @@ research-assistant/
 │   ├── index.js
 │   └── index.css            # CSS variables, focus-visible, clamp
 ├── docs/
-│   ├── demo-desktop.png  # ← add later
-│   └── demo-mobile.png   # ← add later
+│   ├── demo-desktop.png
+│   └── demo-mobile.png
 ├── .env.example
 ├── .gitignore
 └── package.json
