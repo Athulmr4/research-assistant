@@ -45,8 +45,9 @@ export function useChat(paperContext) {
           { role: 'assistant', content: reply },
         ]);
       } catch (err) {
-        setError(err.message);
-        setMessages((prev) => prev.slice(0, -1));
+        // Keep user message visible so error is actionable — fixes 0.1s disappearance
+        console.error('[useChat] askAboutPaper failed:', err);
+        setError(err.message || 'Unknown error occurred.');
       } finally {
         setIsLoading(false);
       }

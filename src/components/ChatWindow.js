@@ -9,7 +9,9 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  if (messages.length === 0 && !isLoading) {
+  const showEmpty = messages.length === 0 && !isLoading && !error;
+
+  if (showEmpty) {
     return (
       <section className="chat-empty" aria-label="Getting started">
         <div className="empty-icon" aria-hidden="true">📚</div>
@@ -28,6 +30,26 @@ export function ChatWindow({ messages, isLoading, error, onClearChat }) {
           </ul>
         </div>
       </section>
+    );
+  }
+
+  // Error with no messages yet — show dedicated error view instead of empty (fixes 0.1s flash)
+  if (messages.length === 0 && error && !isLoading) {
+    return (
+      <div className="chat-window">
+        <div className="messages-list" role="log" aria-live="polite">
+          <div className="error-banner" role="alert">
+            <strong>Error:</strong> {error}
+            <div style={{ marginTop: '8px', fontSize: '12px', opacity: 0.9 }}>
+              Check DevTools console for details. Common causes: invalid Gemini key, model name, or Generative Language API not enabled.
+            </div>
+            <button className="clear-chat-btn" onClick={onClearChat} style={{ marginTop: '10px' }}>
+              Clear & retry
+            </button>
+          </div>
+          <div ref={bottomRef} />
+        </div>
+      </div>
     );
   }
 

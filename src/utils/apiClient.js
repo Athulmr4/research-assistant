@@ -34,7 +34,8 @@ export function createApiClient({ retries = 1, timeoutMs = 30000 } = {}) {
         clearTimeout(timeout);
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
-          const msg = errBody?.error?.message || errBody?.error || `API error: ${res.status}`;
+          const msg = errBody?.error?.message || errBody?.error?.message || errBody?.error || errBody?.message || `API error: ${res.status}`;
+          console.error(`[apiClient] ${res.status} ${url}`, msg, errBody);
           throw new ApiError(msg, res.status);
         }
         return await res.json();

@@ -106,7 +106,8 @@ function buildMessages(paperBlock, userMessage, history) {
 
 async function callGemini(messages) {
   const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-  const model = process.env.REACT_APP_GEMINI_MODEL || 'gemini-1.5-flash';
+  // Updated default: gemini-1.5-flash was sunset in 2025; use 2.0 flash with fallback
+  const model = process.env.REACT_APP_GEMINI_MODEL || 'gemini-2.0-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   // Gemini uses systemInstruction + contents
@@ -115,17 +116,42 @@ async function callGemini(messages) {
     parts: [{ text: m.content }],
   }));
 
-  const data = await apiClient.request(url, {
-    method: 'POST',
-    body: {
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents,
-      generationConfig: { maxOutputTokens: MAX_TOKENS, temperature: 0.7 },
-    },
-  });
+  let data;
+  try {
+    data = await apiClient.request(url, {
+      method: 'POST',
+      body: {
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents,
+        generationConfig: { maxOutputTokens: MAX_TOKENS, temperature: 0.7 },
+      },
+    });
+  } catch (err) {
+    // Fallback: try legacy 1.5 model if 2.0 not available (404), preserves free tier
+    if (err.status === 404 && model === 'gemini-2.0-flash') {
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+      console.warn('[llmProvider] gemini-2.0-flash not found, retrying with gemini-1.5-flash-latest');
+      data = await apiClient.request(fallbackUrl, {
+        method: 'POST',
+        body: {
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { maxOutputTokens: MAX_TOKENS, temperature: 0.7 },
+        },
+      });
+    } else {
+      // Add actionable hint for common Gemini errors
+      if (err.status === 403) err.message += ' — Enable Generative Language API at console.cloud.google.com/apis/library/generativelanguage.googleapis.com';
+      if (err.status === 400) err.message += ' — Check REACT_APP_GEMINI_API_KEY is valid (no quotes/spaces) and restart npm start.';
+      throw err;
+    }
+  }
 
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('Gemini returned no content.');
+  if (!text) {
+    console.error('[llmProvider] Gemini raw response:', JSON.stringify(data).slice(0, 2000));
+    throw new Error('Gemini returned no content. Check console for raw response; try REACT_APP_GEMINI_MODEL=gemini-1.5-flash-latest');
+  }
   return text;
 }
 
