@@ -36,8 +36,9 @@ export function resolveProvider() {
 }
 
 export function getProviderLabel(provider) {
+  const model = provider === 'gemini' ? (process.env.REACT_APP_GEMINI_MODEL || 'gemini-flash-latest') : '';
   const labels = {
-    gemini: 'Gemini 1.5 Flash (Free)',
+    gemini: `Gemini ${model} (Free)`,
     groq: 'Groq Llama 3.1 (Free)',
     huggingface: 'Hugging Face (Free)',
     anthropic: 'Claude Opus 4.5',
